@@ -1,0 +1,24 @@
+# RNA-seq workflow command outline
+
+# Step 1: Quality check
+fastqc sample_R1.fastq.gz sample_R2.fastq.gz
+
+# Step 2: Trimming
+trimmomatic PE sample_R1.fastq.gz sample_R2.fastq.gz \
+sample_R1_paired.fastq.gz sample_R1_unpaired.fastq.gz \
+sample_R2_paired.fastq.gz sample_R2_unpaired.fastq.gz \
+ILLUMINACLIP:adapters.fa:2:30:10 SLIDINGWINDOW:4:20 MINLEN:35
+
+# Step 3: Alignment
+hisat2 -x reference_index \
+-1 sample_R1_paired.fastq.gz \
+-2 sample_R2_paired.fastq.gz \
+-S sample.sam
+
+# Step 4: Convert and sort
+samtools view -bS sample.sam > sample.bam
+samtools sort sample.bam -o sample_sorted.bam
+samtools index sample_sorted.bam
+
+# Step 5: Feature counting
+featureCounts -a annotation.gtf -o counts.txt sample_sorted.bam
